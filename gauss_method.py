@@ -7,7 +7,7 @@ def gauss_elimination_with_pm(A, b, verbose=True):
     b = b.copy().astype(float)
 
     P_matrices = []
-    M_matrices = []  ь
+    M_matrices = []
 
     if verbose:
         print("ПОЧАТКОВА СИСТЕМА:")
