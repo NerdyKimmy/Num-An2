@@ -40,34 +40,50 @@ def gauss_elimination_with_pm(A, b, verbose=True):
             print("Матриця A після перестановки:")
             print(A)
 
-        M_i = np.eye(n)
         pivot = A[i, i]
-
         if verbose:
             print(f"Головний елемент: a_{i + 1}{i + 1} = {pivot:.4f}")
 
-        for j in range(i + 1, n):
-            factor = A[j, i] / pivot
-            M_i[j, i] = -factor
+        N_i = np.eye(n)
+        N_i[i, i] = 1.0 / pivot
 
-            if verbose:
-                print(f"m_{j + 1}{i + 1} = {factor:.4f}")
+        # Застосовуємо нормалізацію
+        A = N_i @ A
+        b = N_i @ b
 
         if verbose:
-            print(f"Матриця перетворення M_{i + 1}:")
-            print(M_i)
+            print(f"Матриця нормалізації N_{i + 1}:")
+            print(N_i)
+            print("Матриця A після нормалізації:")
+            print(A)
 
-        A = M_i @ A
-        b = M_i @ b
+        E_i = np.eye(n)
+        for j in range(i + 1, n):
+            factor = A[j, i]
+            E_i[j, i] = -factor
+
+            if verbose:
+                print(f"e_{j + 1}{i + 1} = {-factor:.4f}")
+
+        if verbose:
+            print(f"Матриця усунення E_{i + 1}:")
+            print(E_i)
+
+        A = E_i @ A
+        b = E_i @ b
+
+        M_i = E_i @ N_i
         M_matrices.append(M_i)
 
         if verbose:
-            print("Матриця A після перетворення:")
+            print("Матриця A після усунення:")
             print(A)
             print(f"Вектор b: {b}")
+            print(f"Комбінована матриця M_{i + 1} = E_{i + 1} * N_{i + 1}:")
+            print(M_i)
 
     P_total = np.eye(n)
-    for P_i in P_matrices:
+    for P_i in reversed(P_matrices):
         P_total = P_i @ P_total
 
     M_total = np.eye(n)
@@ -84,6 +100,9 @@ def gauss_elimination_with_pm(A, b, verbose=True):
         print(P_total)
         print(f"Загальна матриця перетворень M:")
         print(M_total)
+        print(f"Перевірка: M * P * A_original ≈ U")
+        print("M * P * A_original =")
+        print(M_total @ P_total @ A)
 
     x = np.zeros(n)
     for i in range(n - 1, -1, -1):
@@ -91,6 +110,7 @@ def gauss_elimination_with_pm(A, b, verbose=True):
         if verbose:
             print(f"x[{i + 1}] = ({b[i]:.4f} - {np.dot(A[i, i + 1:], x[i + 1:]):.4f}) / {A[i, i]:.4f} = {x[i]:.4f}")
 
+    # Визначник
     det = np.prod(np.diag(A)) * np.linalg.det(P_total)
 
     return x, det, A, P_total, M_total, P_matrices, M_matrices
@@ -126,6 +146,7 @@ def find_inverse_gauss(A, verbose=True):
         print(A_inv)
 
     return A_inv
+
 
 
 def verify_solution(A, x, b, method_name=""):
